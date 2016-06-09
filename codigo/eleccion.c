@@ -16,9 +16,40 @@ static t_pid siguiente_pid(t_pid pid, int es_ultimo)
 
 void iniciar_eleccion(t_pid pid, int es_ultimo)
 {
- /* Completar acá el algoritmo de inicio de la elección.
-  * Si no está bien documentado, no aprueba.
+ /* Completar acï¿½ el algoritmo de inicio de la elecciï¿½n.
+   * Si no estï¿½ bien documentado, no aprueba.
   */
+  bool respondio=false;
+  t_pid siguiente=siguiente_pid(siguiente,es_ultimo);
+  t_pid buf[2];
+  //en el mensaje meto <id,id> como indica el protocolo
+  buff[0]=pid;
+  buff[1]=pid;
+
+  t_pid rta;
+  //mientras no respondio el ack voy al "siguiente del siguiente" que es siguiente+1 porque como no soy el ultimo siempre hay alguien vivo entre el ultimo y yo. ( y si soy el ultimo la funcion siguiente_pid me da el primero y seguro hay alguien entre eso y yo o soy el unico )
+  while(!respondio){
+    MPI_Request r;
+    MPI_Isend( &buf, 2, MPI_INT, siguiente, MPI_ANY_TAG, MPI_COMM_WORLD, &r);
+
+    //hago polling si me llega un ack listo, sino hago hasta que se acabe el tiempo
+    int llego=0;
+    MPI_Status status;
+    double ahora= MPI_Wtime();
+    double timeout= 3*MPI_Wtime();
+    double tiempo_maximo= ahora+timeout;
+    while(llego==0 || ahora<tiempo_maximo){
+      MPI_Iprobe(MPI_ANY_SOURCE,MPI_ANY_TAG,&llego,&status);
+      ahora= MPI_Wtime();
+    }
+    if(llego==1){
+      respondio=true;
+       MPI_Irecv(&rta, 1, MPI_INT, MPI_ANY_SOURCE, MPI_ANY_TAG, MPI_COMM_WORLD, &r);
+    }
+
+    siguiente++;
+  }
+
 }
 
 void eleccion_lider(t_pid pid, int es_ultimo, unsigned int timeout)
@@ -30,8 +61,8 @@ void eleccion_lider(t_pid pid, int es_ultimo, unsigned int timeout)
 
  while (ahora<tiempo_maximo)
 	{
-	 /* Completar acá el algoritmo de elección de líder.
-	  * Si no está bien documentado, no aprueba.
+	 /* Completar acï¿½ el algoritmo de elecciï¿½n de lï¿½der.
+	  * Si no estï¿½ bien documentado, no aprueba.
           */
 
 	 /* Actualizo valor de la hora. */
@@ -39,5 +70,5 @@ void eleccion_lider(t_pid pid, int es_ultimo, unsigned int timeout)
 	}
 
  /* Reporto mi status al final de la ronda. */
- printf("Proceso %u %s líder.\n", pid, (status==LIDER ? "es" : "no es"));
+ printf("Proceso %u %s lï¿½der.\n", pid, (status==LIDER ? "es" : "no es"));
 }
