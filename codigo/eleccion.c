@@ -103,15 +103,18 @@ void eleccion_lider(t_pid pid, int es_ultimo, unsigned int timeout) {
         sigueGirando=true;
         sale[0]=cl;
         sale[1]=cl;
+        status=NO_LIDER;
       }else{
         sigueGirando=false;
       }
     }else{
-      if(ID > cl){
+      if(ID >= cl){
         sigueGirando=true;
         status=LIDER;
         sale[0]=i;
         sale[1]=ID;//si el ID es mayor al lider actual soy yo el nuevo lider y el toquen gira con <i,id>
+      }else{
+        status=NO_LIDER;
       }
     }
     /*t
