@@ -42,7 +42,7 @@ void iniciar_eleccion(t_pid pid, int es_ultimo)
     int llego=0;
     MPI_Status stat;
     double ahora= MPI_Wtime();
-    double timeout= 3*MPI_Wtime();
+    double timeout= 1;
     double tiempo_maximo= ahora+timeout;
     while(llego==0 && ahora<tiempo_maximo){
       MPI_Iprobe(MPI_ANY_SOURCE,TAG_OK,MPI_COMM_WORLD,&llego,&stat);
@@ -96,7 +96,7 @@ void eleccion_lider(t_pid pid, int es_ultimo, unsigned int timeout) {
     sale[0]=i;
     sale[1]=cl;
     sale[2]=pid;//le mando quien soy asi me sabe decir ok
-    if(cl==ID){ status =LIDER; }//
+    //if(cl==ID){ status =LIDER; }//
 
     if(i==ID){
       if(cl > ID){
@@ -115,28 +115,9 @@ void eleccion_lider(t_pid pid, int es_ultimo, unsigned int timeout) {
         sale[1]=ID;//si el ID es mayor al lider actual soy yo el nuevo lider y el toquen gira con <i,id>
       }else{
         status=NO_LIDER;
+        sigueGirando=true;
       }
     }
-    /*t
-    if (rta[0] == pid) {
-      //cl es el lider
-      if (rta[1] > pid) { // cl>pid el lider está más adelante y no sabe que ganó
-          buff[0] = rta[0];
-          buff[1] = rta[1];
-          MPI_Isend( &buf, 2, MPI_INT, siguiente, TAG_ELEC, MPI_COMM_WORLD, &r);
-      } else {
-        if (rta[1] == pid) { //cl==pid soy el lider
-          status = LIDER;
-          //no gira mas
-        }
-      }
-    } else {
-      if(rta[1] < pid) {
-        buff[0] = rta[0];
-        buff[1] = pid;
-        MPI_Isend( &buf, 2, MPI_INT, siguiente, TAG_ELEC, MPI_COMM_WORLD, &r);
-      }
-    }*/
 
     //fin de comparaciones mando el msj
     if(sigueGirando){
@@ -146,9 +127,10 @@ void eleccion_lider(t_pid pid, int es_ultimo, unsigned int timeout) {
       int respondio=0;
       while(respondio==0 && ya < tiempo_maximo){
         MPI_Request r;
+        printf(" el siguiente es: %d\n",siguiente );
         MPI_Isend( &sale, 3, MPI_INT, siguiente, TAG_TOKEN, MPI_COMM_WORLD, &r);
 
-        double t_respuesta_max =ya + (timeout / 10);
+        double t_respuesta_max =ya + (3);//le doy un timeout de 3
         while (respondio==0 && ya <t_respuesta_max) {
           MPI_Iprobe(MPI_ANY_SOURCE,TAG_OK,MPI_COMM_WORLD,&respondio,&stat);
           ya=MPI_Wtime();
@@ -157,6 +139,7 @@ void eleccion_lider(t_pid pid, int es_ultimo, unsigned int timeout) {
           MPI_Irecv(&ok, 1, MPI_INT, MPI_ANY_SOURCE, TAG_OK, MPI_COMM_WORLD, &r);
         }
         ya=MPI_Wtime();
+        siguiente++;
       }
     }
 
