@@ -30,7 +30,12 @@ void iniciar_eleccion(t_pid pid, int es_ultimo)
   buff[1]=pid;
   buff[2]=pid;
   t_pid rta;
-  //mientras no respondio el OK voy al "siguiente del siguiente" que es siguiente+1 porque como no soy el ultimo siempre hay alguien vivo entre el ultimo y yo. ( y si soy el ultimo la funcion siguiente_pid me da el primero y seguro hay alguien entre eso y yo o soy el unico )
+
+  /*
+    mientras no respondio el OK voy al "siguiente del siguiente" que es siguiente+1
+   porque como no soy el ultimo siempre hay alguien vivo entre el ultimo y yo.
+    ( y si soy el ultimo la funcion siguiente_pid me da el primero y seguro hay alguien entre eso y yo o soy el unico )
+  */
   while(!respondio){
     MPI_Request r;
 
@@ -60,7 +65,6 @@ void eleccion_lider(t_pid pid, int es_ultimo, unsigned int timeout) {
  static t_status status= NO_LIDER;
  double ahora= MPI_Wtime();
  double tiempo_maximo= ahora+timeout;
- //t_pid proximo= siguiente_pid(pid, es_ultimo);
 
  while (ahora<tiempo_maximo) {
    //organizo 2 buffers uno que "entra" y uno que 'sale' osea el que se recibe y el que se enviara eventualmente
@@ -68,9 +72,7 @@ void eleccion_lider(t_pid pid, int es_ultimo, unsigned int timeout) {
     t_pid sale[3]; //<i,cl,ID>
     t_pid ok=OK;//el mensaje de OK
     MPI_Request r;
-  /*  double ya= MPI_Wtime();
-    double tout= 3*MPI_Wtime();
-    double t_maximo= ya+tout;*/
+
     int llegoAlgo=0;
     MPI_Status stat;
     //espero que llegue el mensaje y lo recibo
@@ -94,7 +96,7 @@ void eleccion_lider(t_pid pid, int es_ultimo, unsigned int timeout) {
     sale[0]=i;
     sale[1]=cl;
     sale[2]=pid;//le mando quien soy asi me sabe decir ok
-    //if(cl==ID){ status =LIDER; }//
+    //if(cl==ID){ status =LIDER; }// esto queda implicito mas abajo
 
     //efectuo el algoritmo descrito en el enunciado
     if(i==ID){
@@ -127,7 +129,6 @@ void eleccion_lider(t_pid pid, int es_ultimo, unsigned int timeout) {
       int respondio=0;
       while(respondio==0 && ya < tiempo_maximo){
         MPI_Request r;
-        printf(" el siguiente es: %d\n",siguiente );
         MPI_Isend( &sale, 3, MPI_INT, siguiente, TAG_TOKEN, MPI_COMM_WORLD, &r);//mando el mensaje de salida "sale"
 
         double t_respuesta_max =ya + (3);//le doy un timeout de 3 arbitrario
